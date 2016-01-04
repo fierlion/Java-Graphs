@@ -3,8 +3,10 @@ package basicgraph;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -128,8 +130,12 @@ public abstract class Graph {
 			int numNeighbors = getNeighbors(i).size();
 			degrees.put(numNeighbors, i);
 		}
-		Set<Integer> orderedVerticesSet = degrees.keySet();
-		List<Integer> orderedVertices = new ArrayList<Integer>(orderedVerticesSet);
+		Iterator<Entry<Integer, Integer>> it = degrees.entrySet().iterator();
+		List<Integer> orderedVertices = new ArrayList<Integer>();
+		while (it.hasNext()) {
+			Map.Entry<Integer, Integer> pair = (Map.Entry<Integer, Integer>)it.next();
+			orderedVertices.add(pair.getValue());
+		}
 		return orderedVertices;
 	}
 	
