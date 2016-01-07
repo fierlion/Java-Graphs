@@ -123,18 +123,27 @@ public abstract class Graph {
 	 * @return The degree sequence of this graph.
 	 */
 	public List<Integer> degreeSequence() {
-		//natural sort of vertex by number of neighbors using treemap
-		TreeMap<Integer,Integer> degrees = new TreeMap<Integer, Integer>();
+		List<Integer> orderedVertices = new ArrayList<>();
+		HashMap<Integer, List<Integer>> degreeVertex = new HashMap<>(); 
 		int totalVertices = getNumVertices();
 		for (int i = 0; i < totalVertices; i++) {
-			int numNeighbors = getNeighbors(i).size();
-			degrees.put(numNeighbors, i);
-		}
-		Iterator<Entry<Integer, Integer>> it = degrees.entrySet().iterator();
-		List<Integer> orderedVertices = new ArrayList<Integer>();
-		while (it.hasNext()) {
-			Map.Entry<Integer, Integer> pair = (Map.Entry<Integer, Integer>)it.next();
-			orderedVertices.add(pair.getValue());
+			Integer numNeighbors = getNeighbors(i).size();
+			List<Integer> currentResult = degreeVertex.get(numNeighbors);
+			if (currentResult == null) {
+				List<Integer> vertices = new ArrayList<>(); 
+				vertices.add(i);
+				degreeVertex.put(numNeighbors, vertices);
+			}
+			else {
+				currentResult.add(i);
+			}
+			
+		}	 
+		for (int i = totalVertices-1; i >= 0; i--) {
+			List<Integer> currentResult = degreeVertex.get(i);
+			if (currentResult != null) {
+				orderedVertices.addAll(currentResult);
+			}
 		}
 		return orderedVertices;
 	}
