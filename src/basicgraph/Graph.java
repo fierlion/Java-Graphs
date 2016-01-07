@@ -137,7 +137,6 @@ public abstract class Graph {
 			else {
 				currentResult.add(i);
 			}
-			
 		}	 
 		for (int i = totalVertices-1; i >= 0; i--) {
 			List<Integer> currentResult = degreeVertex.get(i);
