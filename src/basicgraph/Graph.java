@@ -113,14 +113,12 @@ public abstract class Graph {
 	 */
 	public abstract List<Integer> getInNeighbors(int v);
 	
-	
-
 	/** 
 	 * The degree sequence of a graph is a sorted (organized in numerical order 
-	 * from largest to smallest, possibly with repetitions) list of the degrees 
-	 * of the vertices in the graph.
+	 * from largest to smallest, possibly with repetitions) list of the degrees of all
+	 * vertices in the graph.
 	 * 
-	 * @return The degree sequence of this graph.
+	 * @return The degree vertex sequence of this graph.
 	 */
 	public List<Integer> degreeSequence() {
 		List<Integer> orderedVertices = new ArrayList<>();
@@ -128,11 +126,49 @@ public abstract class Graph {
 		int totalVertices = getNumVertices();
 		for (int i = 0; i < totalVertices; i++) {
 			Integer numNeighbors = getNeighbors(i).size();
-			List<Integer> currentResult = degreeVertex.get(numNeighbors);
+			Integer numInNeighbors = getInNeighbors(i).size();
+			Integer totalNeighbors = numNeighbors + numInNeighbors;
+			List<Integer> currentResult = degreeVertex.get(totalNeighbors);
 			if (currentResult == null) {
 				List<Integer> vertices = new ArrayList<>(); 
 				vertices.add(i);
-				degreeVertex.put(numNeighbors, vertices);
+				degreeVertex.put(totalNeighbors, vertices);
+			}
+			else {
+				currentResult.add(i);
+			}
+		}	 
+		for (int i = totalVertices*2; i >= 0; i--) {
+			List<Integer> currentResult = degreeVertex.get(i);
+			if (currentResult != null) {
+				for (int j = 0; j < currentResult.size(); j++) {
+					orderedVertices.add(i);
+				}
+			}
+		}
+		return orderedVertices;
+	}
+
+	/** 
+	 * The degree vertex sequence of a graph is a sorted (organized in numerical order 
+	 * from largest to smallest by degree, possibly with repetitions) list of the  
+	 * vertices in the graph.
+	 * 
+	 * @return The degree vertex sequence of this graph.
+	 */
+	public List<Integer> degreeVertexSequence() {
+		List<Integer> orderedVertices = new ArrayList<>();
+		HashMap<Integer, List<Integer>> degreeVertex = new HashMap<>(); 
+		int totalVertices = getNumVertices();
+		for (int i = 0; i < totalVertices; i++) {
+			Integer numNeighbors = getNeighbors(i).size();
+			Integer numInNeighbors = getInNeighbors(i).size();
+			Integer totalNeighbors = numNeighbors + numInNeighbors;
+			List<Integer> currentResult = degreeVertex.get(totalNeighbors);
+			if (currentResult == null) {
+				List<Integer> vertices = new ArrayList<>(); 
+				vertices.add(i);
+				degreeVertex.put(totalNeighbors, vertices);
 			}
 			else {
 				currentResult.add(i);
