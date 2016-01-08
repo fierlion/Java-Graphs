@@ -297,9 +297,11 @@ public abstract class Graph {
 		
 		System.out.println("****");
 		System.out.println("Roads / intersections:");
-		GraphAdjList graphFromFile = new GraphAdjList();
-		GraphLoader.loadRoadMap("data/testdata/simpletest.map", graphFromFile);
-		System.out.println(graphFromFile);
+		GraphAdjList listGraphFromFile = new GraphAdjList();
+		GraphAdjMatrix matrixGraphFromFile = new GraphAdjMatrix();
+		GraphLoader.loadRoadMap("data/testdata/simpletest.map", listGraphFromFile);
+		GraphLoader.loadRoadMap("data/testdata/simpletest.map", matrixGraphFromFile);
+//		System.out.println(matrixGraphFromFile);
 		
 		System.out.println("Observe all degrees are <= 12.");
 		System.out.println("****");
@@ -318,6 +320,12 @@ public abstract class Graph {
 		//For testing Part 2 functionality
 		// Test your distance2 code here.
 		System.out.println("Testing distance-two methods on sample graphs...");
+		List<Integer> twoHopsList = listGraphFromFile.getDistance2(0);
+		List<Integer> twoHopsGraph = matrixGraphFromFile.getDistance2(0);
+		System.out.println("twoHopsList: " + twoHopsList);
+		System.out.println("twoHopsGraph" + twoHopsGraph);
+		List<Integer> twoHopsAir = airportGraph.getDistance2(1);
+		System.out.println("twoHopsAir" + twoHopsAir);
 		System.out.println("Goal: implement method using two approaches.");
 
 
