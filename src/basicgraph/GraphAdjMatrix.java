@@ -120,7 +120,9 @@ public class GraphAdjMatrix extends Graph {
 		}
 		for(int i = 0; i < arraySize; i++) {
 			if (resMatrix[v][i] > 0) {
-				reachableVertices.add(i);
+				for(int j = 0; j < resMatrix[v][i]; j++) {
+					reachableVertices.add(i);
+				}
 			}
 		}
 		return reachableVertices;
