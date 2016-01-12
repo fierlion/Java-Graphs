@@ -9,6 +9,10 @@ package roadgraph;
 
 
 import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -23,15 +27,15 @@ import util.GraphLoader;
  *
  */
 public class MapGraph {
-	//TODO: Add your member variables here in WEEK 2
-	
+	private Map<GeographicPoint, ArrayList<GeographicPoint>> mapAdjList;
+	private ArrayList<RoadEdge> mapEdges;
 	
 	/** 
 	 * Create a new empty MapGraph 
 	 */
 	public MapGraph()
 	{
-		// TODO: Implement in this constructor in WEEK 2
+		mapAdjList = new HashMap<>();
 	}
 	
 	/**
@@ -40,8 +44,7 @@ public class MapGraph {
 	 */
 	public int getNumVertices()
 	{
-		//TODO: Implement this method in WEEK 2
-		return 0;
+		return mapAdjList.size();
 	}
 	
 	/**
@@ -49,9 +52,13 @@ public class MapGraph {
 	 * @return The vertices in this graph as GeographicPoints
 	 */
 	public Set<GeographicPoint> getVertices()
-	{
-		//TODO: Implement this method in WEEK 2
-		return null;
+	{	
+		Set<GeographicPoint> vertices = new HashSet<>();
+		Set<GeographicPoint> protectedVertices = mapAdjList.keySet();
+		for (GeographicPoint point : protectedVertices) {
+			vertices.add(point);
+		}
+		return vertices;
 	}
 	
 	/**
@@ -60,8 +67,7 @@ public class MapGraph {
 	 */
 	public int getNumEdges()
 	{
-		//TODO: Implement this method in WEEK 2
-		return 0;
+		return mapEdges.size();
 	}
 
 	
@@ -75,8 +81,14 @@ public class MapGraph {
 	 */
 	public boolean addVertex(GeographicPoint location)
 	{
-		// TODO: Implement this method in WEEK 2
-		return false;
+		if (mapAdjList.get(location) != null) {
+			return false;
+		}
+		else {
+			ArrayList<GeographicPoint> associatedEdges = new ArrayList<>();
+			mapAdjList.put(location, associatedEdges);
+			return true;
+		}
 	}
 	
 	/**
@@ -89,13 +101,24 @@ public class MapGraph {
 	 * @param length The length of the road, in km
 	 * @throws IllegalArgumentException If the points have not already been
 	 *   added as nodes to the graph, if any of the arguments is null,
-	 *   or if the length is less than 0.
+	 *   or if the length is less than 0
 	 */
 	public void addEdge(GeographicPoint from, GeographicPoint to, String roadName,
 			String roadType, double length) throws IllegalArgumentException {
-
-		//TODO: Implement this method in WEEK 2
-		
+		if (from == null || to == null || roadName == null || roadType == null || (Double)length == null) {
+			throw new IllegalArgumentException();
+		}
+		else if (mapAdjList.get(from) == null || mapAdjList.get(to) == null) {
+			throw new IllegalArgumentException();
+		}
+		else {
+			//add to edges array
+			RoadEdge newEdge = new RoadEdge(from, to, roadName, roadType, length);
+			mapEdges.add(newEdge);
+			//add to mapAdjList
+			mapAdjList.get(to).add(from);
+			mapAdjList.get(from).add(to);
+		}
 	}
 	
 

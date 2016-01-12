@@ -327,8 +327,5 @@ public abstract class Graph {
 		List<Integer> twoHopsAir = airportGraph.getDistance2(1);
 		System.out.println("twoHopsAir" + twoHopsAir);
 		System.out.println("Goal: implement method using two approaches.");
-
-
-		
 	}
 }
