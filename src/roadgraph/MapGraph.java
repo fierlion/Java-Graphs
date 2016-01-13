@@ -10,9 +10,11 @@ package roadgraph;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -28,6 +30,8 @@ import util.GraphLoader;
  */
 public class MapGraph {
 	private Map<GeographicPoint, ArrayList<GeographicPoint>> mapAdjList;
+	// TODO arraylist might not be best choice once we need to retrieve
+	// longer paths;  revisit this once it goes into use
 	private ArrayList<RoadEdge> mapEdges;
 	
 	/** 
@@ -36,6 +40,7 @@ public class MapGraph {
 	public MapGraph()
 	{
 		mapAdjList = new HashMap<>();
+		mapEdges = new ArrayList<>();
 	}
 	
 	/**
@@ -121,6 +126,16 @@ public class MapGraph {
 		}
 	}
 	
+	public List<GeographicPoint> getNeighbors(GeographicPoint thisVertex) 
+		throws IllegalArgumentException {
+		if (!mapAdjList.containsKey(thisVertex)) {
+			throw new IllegalArgumentException();
+		} 
+		else {
+			return (mapAdjList.get(thisVertex));
+		}		
+	}
+	
 
 	/** Find the path from start to goal using breadth first search
 	 * 
@@ -146,12 +161,44 @@ public class MapGraph {
 	public List<GeographicPoint> bfs(GeographicPoint start, 
 			 					     GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
 	{
-		// TODO: Implement this method in WEEK 2
-		
+		// initialize 
+		Queue<GeographicPoint> q = new LinkedList<>();
+		Set<GeographicPoint> visited = new HashSet<>();
+		Map<GeographicPoint,GeographicPoint> parent = new HashMap<>();
+		q.add(start);
+		visited.add(start);
+		// bfs using queue
+		while (q.size() != 0) {
+			GeographicPoint curr = q.remove();
+			if (curr.equals(goal)) {
+				// return path
+				return (unwindParents(parent, start, goal));
+			}
+			List<GeographicPoint> neighbors = getNeighbors(curr);
+			for (GeographicPoint neigh : neighbors) {
+				if (!visited.contains(neigh)) {
+					visited.add(neigh);
+					parent.put(neigh, curr);
+					q.add(neigh);
+				}
+			}			
+		}
 		// Hook for visualization.  See writeup.
-		//nodeSearched.accept(next.getLocation());
-
+		// nodeSearched.accept(next.getLocation());
 		return null;
+	}
+	
+	private List<GeographicPoint> unwindParents(Map<GeographicPoint,GeographicPoint> parents, 
+			GeographicPoint start, GeographicPoint goal) {
+		LinkedList<GeographicPoint> unwound = new LinkedList<>();
+		unwound.addFirst(goal);
+		GeographicPoint curr = goal;
+		while (!curr.equals(start)) {
+			GeographicPoint next = parents.get(curr);
+			unwound.addFirst(next);
+			curr = next;
+		}
+		return unwound;
 	}
 	
 
