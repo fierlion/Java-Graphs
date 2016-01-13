@@ -178,13 +178,12 @@ public class MapGraph {
 			for (GeographicPoint neigh : neighbors) {
 				if (!visited.contains(neigh)) {
 					visited.add(neigh);
+					nodeSearched.accept(neigh);  //for visualization
 					parent.put(neigh, curr);
 					q.add(neigh);
 				}
 			}			
 		}
-		// Hook for visualization.  See writeup.
-		// nodeSearched.accept(next.getLocation());
 		return null;
 	}
 	
