@@ -2,6 +2,13 @@ package roadgraph;
 
 import geography.GeographicPoint;
 
+/**
+ * @author Ray Allan
+ * 
+ * A class which represents a particular road edge
+ * Each edge has a start and end point and may be reference be either
+ *
+ */
 public class RoadEdge {
 	private GeographicPoint fromPoint;
 	private GeographicPoint toPoint;

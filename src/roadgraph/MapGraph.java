@@ -186,11 +186,21 @@ public class MapGraph {
 		return null;
 	}
 	
+	/** Unwind the parent Map from a successful bfs 
+	 * 	and from it return a path-ordered array of vertices
+	 * 
+	 * @param parents successful bfs result in Map form
+	 * @param start The starting location from bfs method
+	 * @param goal The goal location from bfs method
+	 * @return
+	 */
 	private List<GeographicPoint> unwindParents(Map<GeographicPoint,GeographicPoint> parents, 
 			GeographicPoint start, GeographicPoint goal) {
+		//linked list allows simple and efficient addFirst() method
 		LinkedList<GeographicPoint> unwound = new LinkedList<>();
 		unwound.addFirst(goal);
 		GeographicPoint curr = goal;
+		//iterate backwards through map using each value as the next key
 		while (!curr.equals(start)) {
 			GeographicPoint next = parents.get(curr);
 			unwound.addFirst(next);
