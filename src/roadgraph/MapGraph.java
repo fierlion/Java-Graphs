@@ -121,7 +121,6 @@ public class MapGraph {
 			RoadEdge newEdge = new RoadEdge(from, to, roadName, roadType, length);
 			mapEdges.add(newEdge);
 			//add to mapAdjList
-			mapAdjList.get(to).add(from);
 			mapAdjList.get(from).add(to);
 		}
 	}
