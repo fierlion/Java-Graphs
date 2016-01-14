@@ -1,0 +1,19 @@
+Justification of class design and implementation
+Ray Allan  Jan 12, 2016
+
+Class: MapGraph
+I implemented MapGraph as an adjacency list because the road map data represented a sparse graph.
+Initially I worked through this problem with an underlying bitmatrix, but found that, while spatially efficient, this solution was lossy in information.  I lost the ability to know how many times a given node was visited.
+I added a public getNeighbors method as this was internally useful for bfs, but could also be useful to the user of the MapGraph
+I also added a private unwindParents method which allowed me to keep the bfs method simple.  The result of my bfs algorithm was a Map of parent:child.  This method unwinds the map using each value as the next key from goal to start node.
+
+Class: RoadEdge
+This was a more difficult decision, which could change given the use case.  I implemented a simple class to encapsulate all information for each edge in the map, and stored them in an array in the MapGraph.
+The array of edges will take n^2 time for lookup where n is the number of edges in the solution path.
+The name of the road was less of a factor, but as implementation continues, I will need to take distance for each given path into account for pathfinding and will probably end up using a hashmap for quicker lookup.
+However I will still use the RoadEdge class and will focus on the containing data structure in MapGraph for optimization.
+
+Overall Design Justification
+I chose to remove the edge details from the map in order to keep edges and vertices separate.  The vertices are simple geographic points, while the edges are enhanced RoadEdges with distance information and names.
+The separation of edge from vertex allows me to expand the classes as the situation demands.  I may add interfaces for each, edge and vertex and put RoadEdge as an implementation of an interface or abstract class.
+For this problem set I wanted to keep the simplicity of GeographicPoints and RoadEdges.
