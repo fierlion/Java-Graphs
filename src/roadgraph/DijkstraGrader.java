@@ -24,7 +24,8 @@ public class DijkstraGrader implements Runnable {
 
     private static final int TESTS = 4;
 
-    /** Format readable feedback */
+    /** Format readable feedback
+     * @param score */
     public static String printOutput(double score, String feedback) {
         return "Score: " + score + "\nFeedback: " + feedback;
     }

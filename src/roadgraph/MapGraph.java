@@ -178,7 +178,7 @@ public class MapGraph {
 		q.add(start);
 		visited.add(start);
 		// bfs using queue
-		while (q.size() != 0) {
+		while (!q.isEmpty()) {
 			GeographicPoint curr = q.remove();
 			if (curr.equals(goal)) {
 				// return path
