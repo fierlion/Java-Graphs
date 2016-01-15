@@ -10,6 +10,7 @@ package roadgraph;
 
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,9 +31,8 @@ import util.GraphLoader;
  */
 public class MapGraph {
 	private Map<GeographicPoint, ArrayList<GeographicPoint>> mapAdjList;
-	// TODO arraylist might not be best choice once we need to retrieve
-	// longer paths;  revisit this once it goes into use
 	private ArrayList<RoadEdge> mapEdges;
+	private Map<GeographicPoint, ArrayList<RoadEdge>> edgesIn;
 	
 	/** 
 	 * Create a new empty MapGraph 
@@ -41,6 +41,7 @@ public class MapGraph {
 	{
 		mapAdjList = new HashMap<>();
 		mapEdges = new ArrayList<>();
+		edgesIn = new HashMap<>();
 	}
 	
 	/**
@@ -74,8 +75,10 @@ public class MapGraph {
 	{
 		return mapEdges.size();
 	}
-
 	
+	public List<RoadEdge> getEdgesIn(GeographicPoint vertex) {
+		return edgesIn.get(vertex);
+	}
 	
 	/** Add a node corresponding to an intersection at a Geographic Point
 	 * If the location is already in the graph or null, this method does 
@@ -117,9 +120,17 @@ public class MapGraph {
 			throw new IllegalArgumentException();
 		}
 		else {
-			//add to edges array
 			RoadEdge newEdge = new RoadEdge(from, to, roadName, roadType, length);
 			mapEdges.add(newEdge);
+			//add to edgesIn
+			if (edgesIn.get(to) == null) {
+				ArrayList <RoadEdge> newEdgeList = new ArrayList<>();
+				newEdgeList.add(newEdge);
+				edgesIn.put(to, newEdgeList);
+			}
+			else {
+				edgesIn.get(to).add(newEdge);
+			}
 			//add to mapAdjList
 			mapAdjList.get(from).add(to);
 		}
@@ -235,8 +246,40 @@ public class MapGraph {
 	public List<GeographicPoint> dijkstra(GeographicPoint start, 
 										  GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
 	{
-		// TODO: Implement this method in WEEK 3
-
+		// initialize
+		PQRoadNodeSort sorter = new PQRoadNodeSort();
+		PriorityQueue<RoadNode> pq = new PriorityQueue<>(sorter);
+		//enqueue geopoint involves creating RoadNode
+		Set<GeographicPoint> visited = new HashSet<>();
+		Map<GeographicPoint,GeographicPoint> parent = new HashMap<>();
+		RoadNode startNode = new RoadNode(start);
+		pq.offer(startNode);
+		while (!pq.isEmpty()) {
+			RoadNode curr = pq.poll();
+			//unwrap curr
+			GeographicPoint currLocation = curr.getLocation();
+			Double currDistance = curr.getDistance();
+			if (!visited.contains(currLocation)) {
+				visited.add(currLocation);
+				if (currLocation.equals(goal)) {
+					return unwindParents(parent, start, goal);
+				}
+				List<GeographicPoint> neighbors = getNeighbors(currLocation);
+				for (GeographicPoint neigh : neighbors) {
+					//get path through curr to n
+					Double totalDistance = currLocation.distance(neigh);
+					//if shorter, update curr as n's parent
+					if (totalDistance < currDistance) {	
+						nodeSearched.accept(neigh); //for visualization
+						parent.put(neigh, currLocation);
+						//update n's distance
+						RoadNode neighNode = new RoadNode(neigh, totalDistance);
+						pq.offer(neighNode);
+					}
+				}
+			}
+		}
+		
 		// Hook for visualization.  See writeup.
 		//nodeSearched.accept(next.getLocation());
 		
