@@ -8,14 +8,13 @@
 package roadgraph;
 
 
-import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -30,18 +29,17 @@ import util.GraphLoader;
  *
  */
 public class MapGraph {
-	private Map<GeographicPoint, ArrayList<GeographicPoint>> mapAdjList;
-	private ArrayList<RoadEdge> mapEdges;
-	private Map<GeographicPoint, ArrayList<RoadEdge>> edgesIn;
-	
+	private Map<RoadNode, List<RoadNode>> mapAdjList;
+	private Map<GeographicPoint, RoadNode> geoNodeLookup;
+	private List<RoadEdge> edges;
 	/** 
 	 * Create a new empty MapGraph 
 	 */
 	public MapGraph()
 	{
 		mapAdjList = new HashMap<>();
-		mapEdges = new ArrayList<>();
-		edgesIn = new HashMap<>();
+		geoNodeLookup = new HashMap<>();
+		edges = new LinkedList<>();
 	}
 	
 	/**
@@ -49,8 +47,8 @@ public class MapGraph {
 	 * @return The number of vertices in the graph.
 	 */
 	public int getNumVertices()
-	{
-		return mapAdjList.size();
+	{	
+		return mapAdjList.keySet().size();
 	}
 	
 	/**
@@ -58,13 +56,13 @@ public class MapGraph {
 	 * @return The vertices in this graph as GeographicPoints
 	 */
 	public Set<GeographicPoint> getVertices()
-	{	
-		Set<GeographicPoint> vertices = new HashSet<>();
-		Set<GeographicPoint> protectedVertices = mapAdjList.keySet();
-		for (GeographicPoint point : protectedVertices) {
-			vertices.add(point);
+	{
+		Set<RoadNode> allVertexNodes = mapAdjList.keySet();
+		Set<GeographicPoint> allGeoPoints = new HashSet<>(); 
+		for (RoadNode v : allVertexNodes) {
+			allGeoPoints.add(v.getLocation());
 		}
-		return vertices;
+		return allGeoPoints;
 	}
 	
 	/**
@@ -73,12 +71,10 @@ public class MapGraph {
 	 */
 	public int getNumEdges()
 	{
-		return mapEdges.size();
+		return edges.size();
 	}
+
 	
-	public List<RoadEdge> getEdgesIn(GeographicPoint vertex) {
-		return edgesIn.get(vertex);
-	}
 	
 	/** Add a node corresponding to an intersection at a Geographic Point
 	 * If the location is already in the graph or null, this method does 
@@ -89,14 +85,21 @@ public class MapGraph {
 	 */
 	public boolean addVertex(GeographicPoint location)
 	{
-		if (mapAdjList.get(location) != null) {
-			return false;
+		// check for existing node at that geopoint
+		Set<RoadNode> keys = mapAdjList.keySet();
+		for (RoadNode k : keys) {
+			if (k.isSameLocation(location)) {
+				// already exists
+				return false;
+			}
 		}
-		else {
-			ArrayList<GeographicPoint> associatedEdges = new ArrayList<>();
-			mapAdjList.put(location, associatedEdges);
-			return true;
-		}
+		//create and add to mapadjlist
+		RoadNode newRoadNode = new RoadNode(location);
+		List<RoadNode> newNeighbors = new LinkedList<>();
+		mapAdjList.put(newRoadNode, newNeighbors);
+		//add to lookup
+		geoNodeLookup.put(location, newRoadNode);
+		return true;
 	}
 	
 	/**
@@ -109,41 +112,53 @@ public class MapGraph {
 	 * @param length The length of the road, in km
 	 * @throws IllegalArgumentException If the points have not already been
 	 *   added as nodes to the graph, if any of the arguments is null,
-	 *   or if the length is less than 0
+	 *   or if the length is less than 0.
 	 */
 	public void addEdge(GeographicPoint from, GeographicPoint to, String roadName,
 			String roadType, double length) throws IllegalArgumentException {
 		if (from == null || to == null || roadName == null || roadType == null || (Double)length == null) {
 			throw new IllegalArgumentException();
 		}
-		else if (mapAdjList.get(from) == null || mapAdjList.get(to) == null) {
+		if (length < 0) {
 			throw new IllegalArgumentException();
 		}
-		else {
-			RoadEdge newEdge = new RoadEdge(from, to, roadName, roadType, length);
-			mapEdges.add(newEdge);
-			//add to edgesIn
-			if (edgesIn.get(to) == null) {
-				ArrayList <RoadEdge> newEdgeList = new ArrayList<>();
-				newEdgeList.add(newEdge);
-				edgesIn.put(to, newEdgeList);
-			}
-			else {
-				edgesIn.get(to).add(newEdge);
-			}
-			//add to mapAdjList
-			mapAdjList.get(from).add(to);
+		RoadNode fromIn = getNodeByGeo(from);
+		RoadNode toIn = getNodeByGeo(to);
+		if (fromIn.equals(null) || toIn.equals(null)) {
+			throw new IllegalArgumentException();
 		}
+		// create RoadEdge and add to edges
+		RoadEdge newEdge = new RoadEdge(from, to, roadName, roadType, length);
+		edges.add(newEdge);
+		// add to mapAdjList
+		mapAdjList.get(fromIn).add(toIn);
+		//add neighbor to from node
+		fromIn.addNeighbor(toIn);
 	}
 	
-	public List<GeographicPoint> getNeighbors(GeographicPoint thisVertex) 
-		throws IllegalArgumentException {
-		if (!mapAdjList.containsKey(thisVertex)) {
-			throw new IllegalArgumentException();
-		} 
-		else {
-			return (mapAdjList.get(thisVertex));
-		}		
+	public RoadNode getNodeByGeo(GeographicPoint pointIn) {
+		RoadNode result = null;
+		Set<RoadNode> keys = mapAdjList.keySet();
+		for (RoadNode k : keys) {
+			if (k.isSameLocation(pointIn)) {
+				result = k;
+			}
+		}
+		return result;
+	}
+	
+	public void printAdjList() {
+		String delimiter = " : ";
+		for (RoadNode r : mapAdjList.keySet()) {
+			System.out.print(r.getLocation());
+			System.out.print(delimiter);
+			List<RoadNode> neighbors = mapAdjList.get(r);
+			for (RoadNode nr : neighbors) {
+				System.out.print(nr.getLocation());
+				System.out.print("|");
+			}
+			System.out.println("");
+		}
 	}
 	
 
@@ -171,55 +186,64 @@ public class MapGraph {
 	public List<GeographicPoint> bfs(GeographicPoint start, 
 			 					     GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
 	{
-		// initialize 
-		Queue<GeographicPoint> q = new LinkedList<>();
-		Set<GeographicPoint> visited = new HashSet<>();
-		Map<GeographicPoint,GeographicPoint> parent = new HashMap<>();
-		q.add(start);
-		visited.add(start);
-		// bfs using queue
-		while (!q.isEmpty()) {
-			GeographicPoint curr = q.remove();
-			if (curr.equals(goal)) {
-				// return path
-				return (unwindParents(parent, start, goal));
+		//initialize queue, visited hashset and parent hashmap
+		//Enqueue S onto the queue
+		//while queue is not empty:
+		//  dequeue node curr from front of queue
+		//  if curr == G return parent map
+		//  for each of curr's neighbors, n, not in visited set:
+		//    add n to visited set
+		//    add curr as n's parent in parent map
+		//    enqueue n onto the queue
+		Queue<RoadNode> q = new LinkedList<>();
+		Set<RoadNode> visited = new HashSet<>();
+		Map<RoadNode, RoadNode> parents = new HashMap<>();
+		RoadNode startNode = getNodeByGeo(start);
+		RoadNode goalNode = getNodeByGeo(goal);
+		// we should be sure to have these nodes
+		assert(!startNode.equals(null));
+		assert(!goalNode.equals(null));
+		q.add(startNode);
+		while(!q.isEmpty()) {
+			RoadNode curr = q.poll();
+			if(curr.equals(goalNode)) {
+				return(unwindParents(parents, startNode, goalNode));
 			}
-			List<GeographicPoint> neighbors = getNeighbors(curr);
-			for (GeographicPoint neigh : neighbors) {
-				if (!visited.contains(neigh)) {
-					visited.add(neigh);
-					nodeSearched.accept(neigh);  //for visualization
-					parent.put(neigh, curr);
-					q.add(neigh);
+			for (RoadNode neigh : curr.getNeighbors()) {
+				if(!containsRoadNode(neigh, parents.keySet())) {
+					 nodeSearched.accept(neigh.getLocation());
+					 visited.add(neigh);
+					 parents.put(curr, neigh);
+					 q.add(neigh);
 				}
-			}			
+			}
 		}
 		return null;
 	}
 	
-	/** Unwind the parent Map from a successful bfs 
-	 * 	and from it return a path-ordered array of vertices
-	 * 
-	 * @param parents successful bfs result in Map form
-	 * @param start The starting location from bfs method
-	 * @param goal The goal location from bfs method
-	 * @return
-	 */
-	private List<GeographicPoint> unwindParents(Map<GeographicPoint,GeographicPoint> parents, 
-			GeographicPoint start, GeographicPoint goal) {
-		//linked list allows simple and efficient addFirst() method
-		LinkedList<GeographicPoint> unwound = new LinkedList<>();
-		unwound.addFirst(goal);
-		GeographicPoint curr = goal;
-		//iterate backwards through map using each value as the next key
-		while (!curr.equals(start)) {
-			GeographicPoint next = parents.get(curr);
-			unwound.addFirst(next);
-			curr = next;
+	public Boolean containsRoadNode(RoadNode nodeIn, Set<RoadNode> parents) {
+		for (RoadNode n : parents) {
+			if (n.isSameLocation(nodeIn.getLocation())) {
+				return (Boolean.TRUE);
+			}
 		}
-		return unwound;
+		return (Boolean.FALSE);
 	}
 	
+	public List<GeographicPoint> unwindParents(Map<RoadNode, RoadNode> parentsIn, 
+			RoadNode startIn, RoadNode goalIn) {
+		LinkedList<GeographicPoint> result = new LinkedList<>();
+		result.addLast(startIn.getLocation());
+		RoadNode curr = startIn;
+		while (!curr.equals(goalIn)) {
+			RoadNode next = parentsIn.get(curr);
+			System.out.println(next.getLocation());
+			GeographicPoint nextGeo = next.getLocation();
+			result.addLast(nextGeo);
+			curr = next;
+		}
+		return(result);
+	}
 
 	/** Find the path from start to goal using Dijkstra's algorithm
 	 * 
@@ -246,40 +270,8 @@ public class MapGraph {
 	public List<GeographicPoint> dijkstra(GeographicPoint start, 
 										  GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
 	{
-		// initialize
-		PQRoadNodeSort sorter = new PQRoadNodeSort();
-		PriorityQueue<RoadNode> pq = new PriorityQueue<>(sorter);
-		//enqueue geopoint involves creating RoadNode
-		Set<GeographicPoint> visited = new HashSet<>();
-		Map<GeographicPoint,GeographicPoint> parent = new HashMap<>();
-		RoadNode startNode = new RoadNode(start);
-		pq.offer(startNode);
-		while (!pq.isEmpty()) {
-			RoadNode curr = pq.poll();
-			//unwrap curr
-			GeographicPoint currLocation = curr.getLocation();
-			Double currDistance = curr.getDistance();
-			if (!visited.contains(currLocation)) {
-				visited.add(currLocation);
-				if (currLocation.equals(goal)) {
-					return unwindParents(parent, start, goal);
-				}
-				List<GeographicPoint> neighbors = getNeighbors(currLocation);
-				for (GeographicPoint neigh : neighbors) {
-					//get path through curr to n
-					Double totalDistance = currLocation.distance(neigh);
-					//if shorter, update curr as n's parent
-					if (totalDistance < currDistance) {	
-						nodeSearched.accept(neigh); //for visualization
-						parent.put(neigh, currLocation);
-						//update n's distance
-						RoadNode neighNode = new RoadNode(neigh, totalDistance);
-						pq.offer(neighNode);
-					}
-				}
-			}
-		}
-		
+		// TODO: Implement this method in WEEK 3
+
 		// Hook for visualization.  See writeup.
 		//nodeSearched.accept(next.getLocation());
 		
