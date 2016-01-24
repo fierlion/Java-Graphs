@@ -213,7 +213,7 @@ public class MapGraph {
 				if(!containsRoadNode(neigh, parents.keySet())) {
 					 nodeSearched.accept(neigh.getLocation());
 					 visited.add(neigh);
-					 parents.put(curr, neigh);
+					 parents.put(neigh, curr);
 					 q.add(neigh);
 				}
 			}
@@ -233,13 +233,12 @@ public class MapGraph {
 	public List<GeographicPoint> unwindParents(Map<RoadNode, RoadNode> parentsIn, 
 			RoadNode startIn, RoadNode goalIn) {
 		LinkedList<GeographicPoint> result = new LinkedList<>();
-		result.addLast(startIn.getLocation());
-		RoadNode curr = startIn;
-		while (!curr.equals(goalIn)) {
+		result.addFirst(goalIn.getLocation());
+		RoadNode curr = goalIn;
+		while (!curr.equals(startIn)) {
 			RoadNode next = parentsIn.get(curr);
-			System.out.println(next.getLocation());
 			GeographicPoint nextGeo = next.getLocation();
-			result.addLast(nextGeo);
+			result.addFirst(nextGeo);
 			curr = next;
 		}
 		return(result);

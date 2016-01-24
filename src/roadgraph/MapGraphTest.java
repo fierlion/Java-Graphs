@@ -40,13 +40,12 @@ public class MapGraphTest {
 	@Test
 	public void testBfs() {
         MapGraph graph = new MapGraph();
-        GraphLoader.loadRoadMap("data/graders/mod2/map1.txt", graph);
+        GraphLoader.loadRoadMap("data/graders/mod2/map3.txt", graph);
         GeographicPoint start = new GeographicPoint(0, 0);
-        GeographicPoint end = new GeographicPoint(6, 6);
+        GeographicPoint end = new GeographicPoint(1, 2);
         graph.printAdjList();
         List<GeographicPoint> bfsResult = graph.bfs(start, end);
-        // 0-6 inclusive
-        assert(bfsResult.size() == 7);
+        assert(bfsResult.size() == 5);
         List<GeographicPoint> bfsReverse = graph.bfs(end, start);
         assert(bfsReverse == null);
 	}

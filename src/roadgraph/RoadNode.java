@@ -55,7 +55,10 @@ public class RoadNode {
 	}
 	
 	public boolean isSameLocation(GeographicPoint pointIn) {
+		if (!pointIn.equals(null)) {
 		return(location.x == pointIn.x &&
 		location.y == pointIn.y);
+		}
+		return false;
 	}
 }
