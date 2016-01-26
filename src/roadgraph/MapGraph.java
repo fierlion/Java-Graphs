@@ -9,11 +9,13 @@ package roadgraph;
 
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -269,8 +271,38 @@ public class MapGraph {
 	public List<GeographicPoint> dijkstra(GeographicPoint start, 
 										  GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
 	{
-		// TODO: Implement this method in WEEK 3
-
+		Comparator<RoadNode> qc = new RoadNodeComparator();
+		Queue<RoadNode> pq = new PriorityQueue<>(10, qc);
+		Set<RoadNode> visited = new HashSet<>();
+		Map<RoadNode, RoadNode> parents = new HashMap<>();
+		RoadNode startNode = getNodeByGeo(start);
+		startNode.setDistance(0.0);
+		RoadNode goalNode = getNodeByGeo(goal);
+		// we should be sure to have these nodes
+		assert(!startNode.equals(null));
+		assert(!goalNode.equals(null));
+		pq.add(startNode);
+		while (!pq.isEmpty()) {
+			RoadNode curr = pq.poll();
+			if (!visited.contains(curr)) {
+				visited.add(curr);
+				if (curr.isSameLocation(goal)) {
+					return(unwindParents(parents, startNode, goalNode));
+				}
+				for (RoadNode neigh : curr.getNeighbors()) {
+					if (!visited.contains(neigh)) {
+						Double tentativeDist = curr.getDistance() + neigh.distanceFrom(curr);
+						if (tentativeDist < neigh.getDistance()) {
+							nodeSearched.accept(neigh.getLocation());
+							neigh.setDistance(tentativeDist);
+							parents.put(neigh, curr);
+							pq.add(neigh);
+						}
+					}
+				}
+			}
+		}
+		
 		// Hook for visualization.  See writeup.
 		//nodeSearched.accept(next.getLocation());
 		
