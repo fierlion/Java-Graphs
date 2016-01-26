@@ -275,6 +275,7 @@ public class MapGraph {
 		Queue<RoadNode> pq = new PriorityQueue<>(10, qc);
 		Set<RoadNode> visited = new HashSet<>();
 		Map<RoadNode, RoadNode> parents = new HashMap<>();
+		int visitedCount = 0;
 		RoadNode startNode = getNodeByGeo(start);
 		startNode.setDistance(0.0);
 		RoadNode goalNode = getNodeByGeo(goal);
@@ -284,9 +285,11 @@ public class MapGraph {
 		pq.add(startNode);
 		while (!pq.isEmpty()) {
 			RoadNode curr = pq.poll();
+			visitedCount += 1;
 			if (!visited.contains(curr)) {
 				visited.add(curr);
 				if (curr.isSameLocation(goal)) {
+					System.out.println(visitedCount);
 					return(unwindParents(parents, startNode, goalNode));
 				}
 				for (RoadNode neigh : curr.getNeighbors()) {
@@ -302,10 +305,6 @@ public class MapGraph {
 				}
 			}
 		}
-		
-		// Hook for visualization.  See writeup.
-		//nodeSearched.accept(next.getLocation());
-		
 		return null;
 	}
 
@@ -333,11 +332,44 @@ public class MapGraph {
 	public List<GeographicPoint> aStarSearch(GeographicPoint start, 
 											 GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
 	{
-		// TODO: Implement this method in WEEK 3
-		
-		// Hook for visualization.  See writeup.
-		//nodeSearched.accept(next.getLocation());
-		
+		Comparator<RoadNode> qc = new RoadNodeComparator();
+		Queue<RoadNode> pq = new PriorityQueue<>(10, qc);
+		Set<RoadNode> visited = new HashSet<>();
+		Map<RoadNode, RoadNode> parents = new HashMap<>();
+		int visitedACount = 0;
+		RoadNode startNode = getNodeByGeo(start);
+		startNode.setDistance(0.0);
+		startNode.setProjDistance(0.0);
+		RoadNode goalNode = getNodeByGeo(goal);
+		// we should be sure to have these nodes
+		assert(!startNode.equals(null));
+		assert(!goalNode.equals(null));
+		pq.add(startNode);
+		while (!pq.isEmpty()) {
+			RoadNode curr = pq.poll();
+			visitedACount += 1;
+			if (!visited.contains(curr)) {
+				visited.add(curr);
+				if (curr.isSameLocation(goal)) {
+					System.out.println(visitedACount);
+					return(unwindParents(parents, startNode, goalNode));
+				}
+				for (RoadNode neigh : curr.getNeighbors()) {
+					if (!visited.contains(neigh)) {
+						Double tentativeDist = curr.getDistance() + neigh.distanceFrom(curr);
+						Double goalDist = curr.distanceFrom(goalNode);
+						Double aStarDist = tentativeDist + goalDist;
+						if (aStarDist < neigh.getProjDistance()) {
+							nodeSearched.accept(neigh.getLocation());
+							neigh.setDistance(tentativeDist);
+							neigh.setProjDistance(aStarDist);
+							parents.put(neigh, curr);
+							pq.add(neigh);
+						}
+					}
+				}
+			}
+		}
 		return null;
 	}
 
@@ -345,15 +377,12 @@ public class MapGraph {
 	
 	public static void main(String[] args)
 	{
-		System.out.print("Making a new map...");
-		MapGraph theMap = new MapGraph();
-		System.out.print("DONE. \nLoading the map...");
-		GraphLoader.loadRoadMap("data/testdata/simpletest.map", theMap);
-		System.out.println("DONE.");
+//		System.out.print("Making a new map...");
+//		MapGraph theMap = new MapGraph();
+//		System.out.print("DONE. \nLoading the map...");
+//		GraphLoader.loadRoadMap("data/testdata/simpletest.map", theMap);
+//		System.out.println("DONE.");
 		
-		// You can use this method for testing.  
-		
-		/* Use this code in Week 3 End of Week Quiz
 		MapGraph theMap = new MapGraph();
 		System.out.print("DONE. \nLoading the map...");
 		GraphLoader.loadRoadMap("data/maps/utc.map", theMap);
@@ -361,12 +390,11 @@ public class MapGraph {
 
 		GeographicPoint start = new GeographicPoint(32.8648772, -117.2254046);
 		GeographicPoint end = new GeographicPoint(32.8660691, -117.217393);
-		
-		
-		List<GeographicPoint> route = theMap.dijkstra(start,end);
-		List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
 
-		*/
+//		List<GeographicPoint> route = theMap.dijkstra(start,end);
+		List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
+		// You can use this method for testing.  
+
 		
 	}
 	
